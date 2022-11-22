@@ -25,7 +25,6 @@ Ktor 包含一个多平台异步 HTTP 客户端，它允许您发出请求和处
 
 ## 三 Ktor 服务端的使用
 我们可以通过多种方式运行 Ktor 服务端程序：  
-![](https://github.com/jackie-yellow/bfs-apk/tree/main/doc/Ktor/ktor_server.png "ktor_server")
 ![](./ktor_server.png "ktor_server")
 - 在 main() 中调用 embeddedServer 来启动 Ktor 应用
 - 运行一个 EngineMain 的 main() 并使用 HOCON application.conf 配置文件
