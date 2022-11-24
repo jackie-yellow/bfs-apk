@@ -130,7 +130,7 @@ View ViewGroup ImageView 通过继承来的，View代码已经有三万多行，
 compose只需要测量一次，参数限定了min和max的height和weight
 <br>
 ```Kotlin
-////////////////////////////////////// View.kt
+// View.kt
 @Composable
 fun NewsItem(viewModel: NewsViewModel, news: News) {
     Card(modifier = Modifier.padding(10.dp), elevation = 10.dp) {
@@ -166,7 +166,7 @@ fun NewsList(viewModel: NewsViewModel) {
     }
 }
 
-//////////////////////////////////////// ViewModel.kt
+// ViewModel.kt
 data class News(
     val title: String,
     val content: String
