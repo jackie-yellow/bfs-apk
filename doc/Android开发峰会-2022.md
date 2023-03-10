@@ -295,15 +295,182 @@ debugImplementation "androidx.compose.ui:ui-test-manifest:@compose_version"
 
 ## 二、Form Factors 外形尺寸
 
+### 13. 插图：Insets: Compose Edition
+针对 Status Bar 和 Navigator Bar 等进行合理的布局，以便适应手机和平板等不同屏幕的设备
+1. 操作步骤
+```kotlin
+// 1. 在 Activity 的 onCreate 函数中添加下面代码  
+WindowCompat.setDecorFitsSystemWindows(window, false)
+// 2. 在 AndroidManifest.xml 中添加  
+android:windowSoftInputMode="adjustResize"
+// 3. 在 themes.xml 中将状态栏和导航栏的背景颜色改为透明  
+<item name="android:statusBarColor">@android:color/transparent</item>  
+<item name="android:navigationBarColor">@android:color/transparent</item>
+// 4. 使用的时候，修饰符中增加一个填充修改器 windowInsetsPadding , 然后使用的dp是WindowInsets.statusBars, 
+Box(Modifier.windowInsetsPadding(WindowInsets.statusBars)) {}
+```
+2. 上面可用类型包括:::  
+Platform Insets |  "Safe" Insets
+= | =
+WindowInsets.statusBars | WindowInsets.safeDrawing
+WindowInsets.navigationBars | WindowInsets.safeGestures
+WindowInsets.ime | WindowInsets.safeContent
+WindowInsets.waterfall |
+WindowInsets.captionBar |
+WindowInsets.tappableElement |
+...and more ! |
+
+3. windowInsetsPadding已经被外部使用了，那么内部的windownInsetsPadding不会在起作用
+4. Material3 组件提供了一些开箱即用的 Insets 支持
+```kotlin
+import androidx.compose.material3.*
+// 脚手架
+Scaffold(contentWindowInsets = ScaffoldDefaults.contentWindowInsets) {/* ... */}
+// 导航栏
+NavigationBar(contentWindowInsets = NavigationBarDefaults.contentWindowInsets) {/* ... */}
+// 导航卷轴
+NavigationRail(contentWindowInsets = NavigationRailDefaults.contentWindowInsets) {/* ... */}
+ModalDrawerSheet(contentWindowInsets = DrawerDefaults.contentWindowInsets) {/* ... */}
+// 顶部状态栏
+TopAppBar(contentWindowInsets = TopAppBarDefaults.contentWindowInsets) {/* ... */}
+```
+5. 代码示例 [https://github.com/android/nowinandroid](https://github.com/android/nowinandroid)
+6. Additional APIs 
+``` 
+Modifier.consumedWindowInsets
+Modifier.withConsumedWindowInsets
+Modifier.windowInsetsStartWidth
+Modifier.windowInsetsEndWidth
+Modifier.windowInsetsTopHeight
+Modifier.windowInsetsBottomHeight
+windowInsets.asPaddingValues()
+windowInsets.exclude
+windowInsets.add()
+```
+7. More Resources
+```
+https://goo.gle/compose-insets-docs
+https://google.github.io/accompanist/insets/#migration
+```
+### 19.为您的 Android 应用程序添加手写笔支持----Adding Stylus support to your Android app
+1. Low-Latency Jetpack Library 
+* An easy way to implement stylus-friendly surfaces 该库可以轻松实现手写笔友好的用户体验
+* Leverages front and multi buffered rendering 利用前端和多缓冲渲染的组合来获得低延迟图形和高质量渲染避免产生视觉撕裂伪影
+* Supports Android Q+
+* Reduces graphics latency by 50% or more 将图形延迟减少50%甚至更多
+
+2. 如何工作
+3. 实现: 使用我们定义的类型 MyData 用于渲染到前缓冲层和多缓冲层的输入数据，从而创建一个 GL 前缓冲渲染实例。然后我们提供一个表面实例 mySurfaceView 作为多缓冲渲染层以及前端缓冲层的父层。最后我们提供了  GLFrontBufferedRenderer 回调的方式指定我们的 GL 渲染逻辑。
+```
+GLFrontBufferedRenderer<MyData> ( // MyData -> Tmeplate type
+    mySurfaceView,            // Parent Layer
+    myCallbacks               // Render callbacks
+)
+
+// 回调实现
+val callbacks = object: GLFrontBufferedRenderer.Callback<MyData> {
+    override fun onDrawFrontBufferedLayer(
+        eglManager: EGLManager,
+        param: MyData
+    ) {
+        // OpenGL code to render delta of stroke
+    }
+
+    override fun onDrawDoubleBufferedLayer(
+        eglManager: EGLManager,
+        params: Collection<MyData>
+    ) {
+        // OpenGL code to render entire stroke
+    }
+}
+```
 ## 三、Platform 平台
+### 1. 将应用迁移到 Android 13
+
+### 2. 为所有用户呈现高质量的媒体体验----Presenting a high-quality media experience for all users
+1. JetPack Media3
+![](./2022%20Android%20Dev%20Summit/screencap/3.Platform.02.WhyMedia3.png)
+
+> ExoPlayer: Default Player implementation in Media3
+```Kotlin
+val player = ExoPlayer.Builder(context).build().apply {
+    addListener(MyListener())
+}
+val mediaSession = MediaSession.Builder(context, player)
+    .setId(MY_MEDIA_SESSION_TAG)
+    .setSessionCallback(MyCallback())
+    .build()
+```
+2. 可以观看之前的视频：
+[https://goo.gle/ads21-media](https://goo.gle/ads21-media)
+[https://goo.gle/io22-media](https://goo.gle/io22-media)
+
+3.自定义MediaPlayer
+```Kotlin
+Implementing a custom Player with Media3
+
+class CustomPlayer : SimpleBasePlayer(looper) {
+    override fun getState(): State {
+        // Set available Commands
+        // Configure playWhenReady, mediaItemIndex, currentPosition, etc.
+    }
+    // Implement methods required by available Commands
+}
+```
+4. Performance Class
+
+### 04.建设多语言世界----Building for a multilingual world
+每个国家有不同的语言，同一个国家也可能存在多种语言情况，而用户选择上肯定选择自己理解的或者喜欢的语言
+* Organize app resources 组织应用程序资源
+ -- so users receive information they understand  以便用户收到他们理解的信息
+资源文件命名上使用 Language Script Region 三个来区分
+
+ values/strings.xml
+ values-zh/strings.xml 中文
+ values-zh-rTW/strings.xml 繁体
+ values-zh+hant/strings.xml 繁体
+ zh-TW 如果没有会回退到 zh-Hant 不会回退到 zh
+* Define resourceConfigurations 定义资源配置
+  -- so layouts are consistent 以便和布局保持一致
+假如用户将设备语言中首选项这只为日语，第二个是英语，那么如果apk中不支持日语时，会自动显示英语
+
+Android studio功能：Build -> Analyze APK中选择具体apk，然后选择"resources.arsc",再选择"string"后，右边就可以看到这个apk有多少中语言配置
+```
+// Solution: define resourceConfigurations
+// build.gradle 添加下面是为了传递我们的应用程序支持的语言列表，这样子就会使得apk的大小减少
+android {
+    defaultConfig {
+        ...
+        resourceConfigurations {
+            ["en", "zh", "zh-rTW", "b+zh+hant"]
+        }
+    }
+}
+```
+* Avoid concatenating and reusing short strings 避免连接和重复使用短字符串
+  -- so users have a great experience across languages 这样用户就有了很好的跨语言体验
+    * Problem: concatenating ,比如使用中间带空格的，英语形容词在名词前面，但是西班牙语名词是在形容词前面，而对日语来说没有空格的说法
+    * Problem: reusing short strings， 比如off，原先表示开关的，但是葡萄牙语会翻译成feminine，但是当前开关状态是masculine，这样子使用off查找是找不到的。
+
+* Use MessageFormat 使用消息格式
+  -- for flexible string formatting across languages 用于跨语言的灵活字符串格式
+英语的倒计时是使用 One 或者 Other， One 表示一天，“Last day!", Other 表示 2天，3天... "%d days left", 而在俄语中 One 可能表示1，21， 31， 41等，这样子就会出现问题
+
+![](./2022%20Android%20Dev%20Summit/screencap/2022-12-08_160900.png)
+![](./2022%20Android%20Dev%20Summit/screencap/2022-12-08_162530.png)
+
+Other ways to use MessageFormat for flexible string formatting across languages 
+cardinal numbers,ordinal numbers,dates,times, gender, nesting messages
+考虑到用于序号、日期、时间、性别 和嵌套复杂的消息格式
+
+* Enable per-app language perferences 启用每个应用程序的语言偏好
+
+> Learn More
+> [goo.gle/app-languages](https://goo.gle/app-languages)
+> [goo.gle/app-languages-video](https://goo.gle/app-languages-video)
 
 
-
-
-
-
-
-
+### 12.关于 Android 存储的一切----Everything about storage on Android
 
 
 

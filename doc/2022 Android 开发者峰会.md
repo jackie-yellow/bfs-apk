@@ -1,3 +1,96 @@
+# 2022 Android Dev Summit
+
+## 1. 版本管理 Compose BOM
+由于 Compose 组件太多，如果单独定义每个版本，容易导致出错，所以定义了一个 BOM 模块，用于声明一组内容库及其版本。之后只需要定一个 BOM 版本，就能够从中提取所有 Compose 相关的内容库版本。
+每当 Compose 组件有新的稳定版本时，就回发布新的 BOM 版本，因此可以更加轻松的从一个稳定版转移到另一个稳定版
+```Kotlin
+dependencies {
+    // 导入 Compose BOM
+    implementation platform('androidx.compose2022.10.00')
+
+    // 为尚未标明版本的目标 Compose 库声明依赖项
+    implementation 'androidx.compose.foundation:foundation'
+    androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
+
+    //implementation("androidx.compose.ui:ui:1.2.0-alpha08")
+    //implementation("androidx.compose.material:material:1.2.0-alpha08")
+    //implementation("androidx.compose.material3:material3:1.0.0-alpha12")
+    //implementation("androidx.compose.material:material-icons-extended:1.2.0-alpha08@aar")
+    //implementation("androidx.compose.ui:ui-tooling-preview:1.2.0-alpha08")
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.material:material")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    ...
+}
+```
+
+## 2. 新增功能
+### 使用全新 LazyHorizontalStaggeredGrid 和 LazyVerticalStaggeredGrid 实现交错网格
+### 使用 DrawScope.drawText 直接在画布中绘制文本
+### 使用 FontVariation 对象在应用中添加可变字体并更改其属性
+### 在带注释的字符串中添加 UrlAnnotation 以改进与文本互动的无障碍服务
+### 使用全新 LineBreakAPI 在您的文本中添加断字功能
+### 使用全新 pullRefresh 修饰符下拉刷新
+### 使用 SnapFlingBehavior 在您的惰性列表中添加贴靠行为
+### LookAheadLayout 是一种新的布局类型，可以提供关于子项的最终测量与放置信息，帮助您决定中间层布局
+
+## 3. Compose Material 3
+
+## 4. Android Studio 工具
+* Android Studio Dolphin 
+    * 动画协调
+    * MultiPreview 注释
+    * 布局检查器中的重组计数
+
+## 5. Relay
+发布了 Relay 的首个 Alpha 版本，作为设计稿转代码的解决方案，可优化设计者与开发者之间的协作。设计者使用 Figma 插件创建界面组件，开发者则使用 Android Studio 插件将这些组件自动应用到他们的应用中。生成的组件是可组合函数，并可直接被集成到您的 Compose 应用中。您可以查看官方文档，详细了解 Relay。
+* [Relay](https://relay.material.io/)
+* [Figma 插件](https://www.figma.com/community/plugin/1041056822461507786)
+* [Android Studio 插件](https://plugins.jetbrains.com/plugin/19721-relay-for-android-studio/)
+* [官方文档](https://developer.android.google.cn/jetpack/compose/tooling/relay
+)
+
+## 6. 面向 Wear OS、大屏幕设备和电视的 Compose
+
+
+
+## 7.性能优化
+[Jetpack Compose 性能提升最佳实践](https://www.youtube.com/watch?v=EOQB8PTLkpY&list=PLWz5rJ2EKKc9Ty3Zl1hvMVUsXfkn93NRk)  
+[深入了解 Jetpack Compose 布局](https://www.youtube.com/watch?v=zMKMwh9gZuI)
+* 1. configuration: 配置文件，需要正式环境且打开R8。
+```
+buildTypes {
+    release {
+        minifyEnabled true
+    }
+}
+```
+* 2. remember: 
+    * remember可以保证在数字变化的时候重组，而在重组的时候不会再次执行。
+    * 键：lazylist key，需要保证key是唯一的
+* 3. Deriving change: 衍生更改，主要是为了区分条件满足时才执行重组。比如滑动列表后显示"Move to top"按钮, listState的状态会一直刷新，我们只需要知道大于时显示按钮，但是继续滑动，不需要重组显示按钮
+```
+val showButton = remember {
+    derivedStateOf {
+        listState.firstVisibleItemIndex > 0
+    }
+}
+```
+* 4. Reading state: 延迟读取状态，例子是一个刷新操作。Compose三步骤（组合、布局、绘制）,能跳过的步骤尽量跳过
+* 5. Running backwards: 在取值后又直接对该值进行了修改，导致系统判断当前值已废弃，执行了重组
+* 6. Baseline Profiles
+Compose is a library -- it does not participate in system resource sharing
+Use Macrobenchmark to test the preformance benefit
+[关于如何生产自己的配置文件以及如何配置Macrobenchmark](https://goo.gle/baseline-profiles)
+[关于如何生产自己的配置文件以及如何配置Macrobenchmark](https://goo.gle/baseline-profiles-codelab)
+
+
+
+----------------------------
+----------------------------
+----------------------------
+
 # <font color="#499CD6">2022 Android 开发者峰会(2022 Android Dev Summit)</font>  
 * 现代 Android 开发 (Modern Android Development)  
 ![Modern Android Development](./2022%20Android%20Dev%20Summit/dcim/01.modern%20android%20development.png "Modern Android Development")
